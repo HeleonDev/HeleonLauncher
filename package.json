@@ -1,26 +1,26 @@
 {
-    "name": "MiguelkiNetwork-MCLauncher",
-    "preductname": "Miguelki Network MC Launcher",
-    "version": "3.3.1",
-    "sub_version": "BETA",
-    "changelog": "Se ha rediseñado el panel de settings y se ha reescrito el sistema de configuración.",
-    "description": "Launcher de minecraft para los servidores de Miguelki Network",
+    "name": "Heleon-Launcher",
+    "preductname": "Heleon Launcher",
+    "version": "1.0.0",
+    "sub_version": "",
+    "changelog": "Esta es la primera versión del launcher.",
+    "description": "Launcher de minecraft para los servidores de Heleon",
     "main": "src/app.js",
     "author": {
         "name": "Miguelki",
         "email": "admin@miguelkinetwork.fun",
         "url": "https://github.com/miguelkix30"
     },
-    "url": "http://node1.miguelkinetwork.info:25565/",
+    "url": "http://heleon.miguelkinetwork.info/",
     "store_url": "https://minecraft.miguelkinetwork.info/shop/",
     "azuriom_url": "https://minecraft.miguelkinetwork.info/",
-    "discord_url": "https://dsc.gg/miguelkinetwork",
-    "discord_client_id": "1307003977442787451",
+    "discord_url": "https://discord.gg/servidores-2k-servidores-de-minecraft-670071895529488404",
+    "discord_client_id": "1370731676262596708",
     "scripts": {
         "start": "cross-env-shell NODE_ENV=dev electron .",
         "dev": "cross-env-shell DEV_TOOL=open nodemon --exec npm start",
         "build": "node build.js --obf=true --build=platform",
-        "icon": "node build.js --icon=https://github.com/miguelkix30/MiguelkiNetworkMCLauncher/master/src/assets/images/icon.png"
+        "icon": "node build.js --icon=https://github.com/HeleonDev/HeleonLauncher/master/src/assets/images/icon.png"
     },
     "license": "CCANC",
     "nodemonConfig": {
@@ -54,6 +54,6 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/miguelkix30/MiguelkiNetworkMCLauncher.git"
+        "url": "git+https://github.com/HeleonDev/HeleonLauncher.git"
     }
 }
