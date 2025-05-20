@@ -7,6 +7,7 @@ import Login from "./panels/login.js";
 import Home from "./panels/home.js";
 import Settings from "./panels/settings.js";
 import Mods from "./panels/mods.js";
+import Skins from "./panels/skins.js";
 import Logger2 from "./loggerprod.js";
 import cleanupManager from './utils/cleanup-manager.js';
 
@@ -54,8 +55,7 @@ let dev = process.env.NODE_ENV === "dev";
 
 class Launcher {
   async init() {
-    if (dev) this.initLog();
-    else this.initWindow();
+    this.initWindow();
 
     console.log("Iniciando Launcher...");
     
@@ -137,7 +137,7 @@ class Launcher {
       await this.initConfigClient();
     }
     
-    this.createPanels(Login, Home, Settings, Mods);
+    this.createPanels(Login, Home, Settings, Mods, Skins);
     let res = await config.GetConfig();
     if ((res.musicBeta || dev) && (!configClient || !configClient.launcher_config.performance_mode)) setBackgroundMusic();
     
@@ -1322,7 +1322,7 @@ class Launcher {
                     
                     if (account_ID == account_selected) {
                       // Solo seleccionar la cuenta pero no agregar visualmente aquí
-                      clickableHead(false);
+                      clickableHead();
                       await setUsername(refresh_accounts.name);
                       await loginMSG();
                     }
@@ -1394,7 +1394,7 @@ class Launcher {
                     
                     if (account_ID == account_selected) {
                       // Solo seleccionar la cuenta pero no agregar visualmente aquí
-                      clickableHead(false);
+                      clickableHead();
                       await setUsername(refresh_accounts.name);
                       await loginMSG();
                     }
@@ -1459,7 +1459,7 @@ class Launcher {
               
               if (account_ID == account_selected) {
                 // Solo seleccionar la cuenta pero no agregar visualmente aquí
-                clickableHead(true);
+                clickableHead();
                 await setUsername(account.name);
                 await loginMSG();
               }
@@ -1481,7 +1481,7 @@ class Launcher {
                 
                 if (account_ID == account_selected) {
                   // Solo seleccionar la cuenta pero no agregar visualmente aquí
-                  clickableHead(false);
+                  clickableHead();
                   await setUsername(account.name);
                   await loginMSG();
                 }
@@ -1598,6 +1598,11 @@ class Launcher {
         // Ahora que tenemos todas las cuentas actualizadas y guardadas, las añadimos a la interfaz
         for (const account of refreshedAccounts) {
             await addAccount(account);
+            await accountSelect(account);
+            await clickableHead();
+            await setUsername(account.name);
+            await loginMSG();
+            changePanel('home');
         }
         
         if ((!account_selected || typeof account_selected === 'undefined') && refreshedAccounts.length > 0) {
@@ -1607,8 +1612,7 @@ class Launcher {
                 console.log(`Seleccionando cuenta por defecto con ID: ${uuid}, nombre: ${refreshedAccounts[0].name}`);
                 await this.db.updateData("configClient", configClient);
                 await accountSelect(refreshedAccounts[0]);
-                if (refreshedAccounts[0].meta && refreshedAccounts[0].meta.type == 'AZauth') clickableHead(true);
-                else clickableHead(false);
+                clickableHead();
                 await setUsername(refreshedAccounts[0].name);
             }
         } else if (account_selected) {
@@ -1618,8 +1622,7 @@ class Launcher {
             if (selectedAccount) {
                 console.log(`Cuenta seleccionada encontrada: ${selectedAccount.name} (ID: ${selectedAccount.ID})`);
                 await accountSelect(selectedAccount);
-                if (selectedAccount.meta && selectedAccount.meta.type == 'AZauth') clickableHead(true);
-                else clickableHead(false);
+                clickableHead();
                 await setUsername(selectedAccount.name);
             } else if (refreshedAccounts.length > 0) {
                 // Si la cuenta seleccionada no existe pero hay otras cuentas, seleccionar la primera
@@ -1627,8 +1630,7 @@ class Launcher {
                 configClient.account_selected = refreshedAccounts[0].ID;
                 await this.db.updateData("configClient", configClient);
                 await accountSelect(refreshedAccounts[0]);
-                if (refreshedAccounts[0].meta && refreshedAccounts[0].meta.type == 'AZauth') clickableHead(true);
-                else clickableHead(false);
+                clickableHead();
                 await setUsername(refreshedAccounts[0].name);
             }
         }
@@ -1672,14 +1674,15 @@ class Launcher {
     });
 
     logContent.addEventListener("scroll", () => {
-      if (logContent.scrollTop + logContent.clientHeight < logContent.scrollHeight) {
+      // Calculamos si estamos cerca del final del scroll
+      const isNearBottom = logContent.scrollTop + logContent.clientHeight >= logContent.scrollHeight - 50;
+      
+      if (!isNearBottom) {
         autoScroll = false;
         scrollToBottomButton.classList.add("show");
-        scrollToBottomButton.style.pointerEvents = "auto";
       } else {
         autoScroll = true;
         scrollToBottomButton.classList.remove("show");
-        scrollToBottomButton.style.pointerEvents = "none";
       }
     });
 
@@ -1690,27 +1693,91 @@ class Launcher {
         behavior: "smooth"
       });
       scrollToBottomButton.classList.remove("show");
-      scrollToBottomButton.style.pointerEvents = "none";
     });
 
+    // Inicialización del scrollToBottomButton para asegurar que tenga los estilos correctos
+    scrollToBottomButton.innerHTML = '<i class="fa-solid fa-arrow-down"></i>';
+    scrollToBottomButton.querySelector('i').style.fontSize = '24px';
+    
+    // Verificar si hay scroll al inicio y mostrar el botón si es necesario
+    setTimeout(() => {
+      if (logContent.scrollHeight > logContent.clientHeight) {
+        const isNearBottom = logContent.scrollTop + logContent.clientHeight >= logContent.scrollHeight - 50;
+        if (!isNearBottom) {
+          scrollToBottomButton.classList.add("show");
+        }
+      }
+    }, 500);
+
+    // Obtener referencias a botones y preparar tooltips
     let patchToolkit = document.querySelector(".patch-toolkit");
+    let reportIssueButton = document.querySelector(".report-issue");
+    let copyButton = document.querySelector(".copy-console-hwid");
+
+    // Función para añadir tooltips
+    const addTooltip = (element, text) => {
+      let tooltip = null;
+      
+      element.addEventListener('mouseenter', () => {
+        tooltip = document.createElement('div');
+        tooltip.className = 'tooltip';
+        tooltip.innerText = text;
+        document.body.appendChild(tooltip);
+
+        const rect = element.getBoundingClientRect();
+        tooltip.style.left = rect.left - tooltip.offsetWidth - 10 + 'px';
+        tooltip.style.top = rect.top + (rect.height / 2) - (tooltip.offsetHeight / 2) + 'px';
+        
+        // Cambiar flecha al lado derecho
+        tooltip.style.setProperty('--tooltip-arrow-side', 'right');
+        
+        // Hacer que el tooltip sea visible
+        setTimeout(() => {
+          tooltip.style.opacity = '1';
+        }, 10);
+      });
+      
+      element.addEventListener('mouseleave', () => {
+        if (tooltip) {
+          tooltip.style.opacity = '0';
+          setTimeout(() => {
+            // Add null check before accessing parentNode
+            if (tooltip && tooltip.parentNode) {
+              tooltip.parentNode.removeChild(tooltip);
+            }
+            tooltip = null;
+          }, 200);
+        }
+      });
+    };
+
+    // Añadir tooltips a los botones
+    addTooltip(copyButton, "Copiar ID al portapapeles");
+    addTooltip(scrollToBottomButton, "Desplazar al final de los registros");
+    
+    // Configurar el botón de patch toolkit
     let res = await config.GetConfig();
     if (res.patchToolkit) {
       patchToolkit.addEventListener("click", () => {
         logs.classList.toggle("show");
         this.runPatchToolkit();
       });
+      addTooltip(patchToolkit, "Ejecutar Toolkit de Parches");
     } else {
       patchToolkit.style.display = "none";
+      // Adjust scroll button position when patch toolkit is hidden
+      scrollToBottomButton.style.bottom = "80px";
     }
 
-    let reportIssueButton = document.querySelector(".report-issue");
+    // Configurar el botón de reportar problema
     reportIssueButton.classList.add("show");
     reportIssueButton.addEventListener("click", () => {
       logs.classList.toggle("show");
       this.confirmReportIssue();
     });
+    addTooltip(reportIssueButton, "Reportar un problema");
 
+    // Configurar eventos de logger
     logger2.launcher.on("info", (...args) => {
       addLog(logContent, "info", args);
     });
@@ -1749,6 +1816,9 @@ class Launcher {
       content.appendChild(span);
       if (autoScroll) {
         content.scrollTop = content.scrollHeight;
+      } else if (content.scrollHeight > content.clientHeight) {
+        // Si no está en autoScroll y hay suficiente contenido para scroll, mostrar el botón
+        scrollToBottomButton.classList.add("show");
       }
     }
 
