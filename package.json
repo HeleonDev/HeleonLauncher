@@ -1,9 +1,9 @@
 {
     "name": "Heleon-Launcher",
     "preductname": "Heleon Launcher",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "sub_version": "",
-    "changelog": "Esta es la primera versión del launcher.",
+    "changelog": "Actualizada la API interna y mejoras de rendimiento.",
     "description": "Launcher de minecraft para los servidores de Heleon",
     "main": "src/app.js",
     "author": {
@@ -11,7 +11,7 @@
         "email": "admin@miguelkinetwork.fun",
         "url": "https://github.com/miguelkix30"
     },
-    "url": "http://heleon.miguelkinetwork.info/",
+    "url": "http://heleon.miguelkiwebservices.com/",
     "store_url": "https://minecraft.miguelkinetwork.info/shop/",
     "azuriom_url": "https://minecraft.miguelkinetwork.info/",
     "discord_url": "https://discord.gg/servidores-2k-servidores-de-minecraft-670071895529488404",
